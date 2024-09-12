@@ -9,7 +9,8 @@ import os
 import xml.etree.ElementTree as ET
 import time
 
-challengeUrl = "http://{username}:{password}@{ip}:{port}/ISAPI/Security/sessionLogin/capabilities?username={username}"
+#challengeUrl = "http://{username}:{password}@{ip}:{port}/ISAPI/Security/sessionLogin/capabilities?username={username}"
+challengeUrl = "http://{ip}:{port}/ISAPI/Security/sessionLogin/capabilities?username={username}"
 
 getUrl = "http://{ip}:{port}/{loginName}/{password}"
 postUrl = "http://{ip}:{port}/ISAPI/Security/sessionLogin?timeStamp={timeStamp}"
@@ -116,7 +117,7 @@ def create_payload(login, password, enc_settings):
 def make_request(ip, port, logins, passwords, method):
     print(f"{ip}:{port}")
     timestamp = time.time()
-    enc_settings = get_encryption_settings("", "", ip, port)
+    enc_settings = get_encryption_settings("dummy", "", ip, port)
     try:
         salt = enc_settings["salt"]
         print("Got salt: "+salt)
