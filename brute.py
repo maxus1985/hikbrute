@@ -116,11 +116,12 @@ def create_payload(login, password, enc_settings):
 def make_request(ip, port, logins, passwords, method):
     print(f"{ip}:{port}")
     timestamp = time.time()
+    enc_settings = get_encryption_settings("", "", ip, port)
     for login in logins:
         for password in passwords:
             try:
                 url = postUrl.format(ip=ip, port=port, timeStamp=timestamp)
-                enc_settings = get_encryption_settings(login, password, ip, port)
+
 
                 payload = create_payload(login, password, enc_settings)
                 headers = {'Content-Type': postContentType}
