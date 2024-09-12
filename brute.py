@@ -63,6 +63,7 @@ def get_encryption_settings(username, password, ip, port):
     response = requests.get(url=url, headers=headers)
     if response.status_code != 200:
         raise ValueError("Cannot request encryption settings from: " + url + " - "+ str(response.status_code))
+    print("received enc settings: ", response.text)
     return parse_challenge_response(response.text)
 
 
@@ -137,15 +138,9 @@ def make_request(ip, port, logins, passwords, method):
                     print("FOUND: " + login + "/" + password)
                     return {"user": login, "password": password}
 
-            except ValueError as error:
+            except (ValueError, TypeError) as error:
                 print(f"Request failed: {error}")
 
-            except TypeError as error:
-                print(f"Request failed: {error}")
-
-
-#                except Exception as e:(
-#                    print(f"Request failed: {e}"))
 
 # Worker function to be run in threads
 def worker(ip, port, logins, passwords, method):
