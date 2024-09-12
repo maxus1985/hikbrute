@@ -117,6 +117,12 @@ def make_request(ip, port, logins, passwords, method):
     print(f"{ip}:{port}")
     timestamp = time.time()
     enc_settings = get_encryption_settings("", "", ip, port)
+    try:
+        salt = enc_settings["salt"]
+        print("Got salt: "+salt)
+    except TypeError as e:
+        print("Cannot get salt - maybe tries exceeded?")
+        return
     for login in logins:
         for password in passwords:
             try:
