@@ -136,9 +136,13 @@ def make_request(ip, port, logins, passwords, method):
                 if response.status_code == 200:
                     print("FOUND: " + login + "/" + password)
                     return {"user": login, "password": password}
+
             except ValueError as error:
                 print(f"Request failed: {error}")
-                return
+
+            except TypeError as error:
+                print(f"Request failed: {error}")
+
 
 #                except Exception as e:(
 #                    print(f"Request failed: {e}"))
