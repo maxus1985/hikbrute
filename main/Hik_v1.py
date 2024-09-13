@@ -3,12 +3,12 @@ from asyncio.log import logger
 import requests
 
 from main.Hik import Hik
-contentType = "application/xml"
 
 
 class HikV1(Hik):
     auth_link = "http://{ip}:{port}/ISAPI/Security/challenge"
     auth_payload = """<?xml version="1.0" encoding="utf-8"?>"""
+    contentType = "application/xml"
 
     def get_version(self) -> str:
         return "v1"
