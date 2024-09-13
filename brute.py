@@ -1,13 +1,13 @@
 import argparse
-import threading
-from ftplib import error_perm
-from multiprocessing.managers import Value
-
-import requests
 import hashlib
 import os
-import xml.etree.ElementTree as ET
+import threading
 import time
+import xml.etree.ElementTree as ET
+
+import requests
+
+from main.detect import detect_hik_version
 
 #challengeUrl = "http://{username}:{password}@{ip}:{port}/ISAPI/Security/sessionLogin/capabilities?username={username}"
 challengeUrl = "http://{ip}:{port}/ISAPI/Security/sessionLogin/capabilities?username={username}"
@@ -122,7 +122,7 @@ def make_request(ip, port, logins, passwords, method):
         salt = enc_settings["salt"]
         print("Got salt: "+salt)
     except TypeError as e:
-        print("Cannot get salt - maybe tries exceeded?")
+        print("Cannot get salt - maybe tries exceeded? ({e})")
         return
     for login in logins:
         for password in passwords:
@@ -152,6 +152,11 @@ def make_request(ip, port, logins, passwords, method):
 
 # Worker function to be run in threads
 def worker(ip, port, logins, passwords, method):
+    module = detect_hik_version(ip, port)
+    if module is None:
+        print("No known Hikvision device detected")
+        return
+    module.perform_auth()
     make_request(ip, port, logins, passwords, method)
 
 
