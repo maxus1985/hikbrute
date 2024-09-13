@@ -1,5 +1,6 @@
 import argparse
 import hashlib
+import logging
 import os
 import threading
 import time
@@ -114,7 +115,7 @@ def create_payload(login, password, enc_settings):
     return postPayload.format(username=login, password=encoded_pwd, sessionid=enc_settings.get("sessionid"))
 
 
-def make_request(ip, port, logins, passwords, method):
+def make_request(ip, port, logins, passwords):
     print(f"{ip}:{port}")
     timestamp = time.time()
     enc_settings = get_encryption_settings("dummy", "", ip, port)
@@ -151,13 +152,13 @@ def make_request(ip, port, logins, passwords, method):
 
 
 # Worker function to be run in threads
-def worker(ip, port, logins, passwords, method):
+def worker(ip, port, logins, passwords):
     module = detect_hik_version(ip, port)
     if module is None:
         print("No known Hikvision device detected")
         return
-    module.perform_auth()
-    make_request(ip, port, logins, passwords, method)
+    module.perform_auth(ip, port, logins, passwords)
+    #make_request(ip, port, logins, passwords)
 
 
 # Main function
@@ -168,8 +169,16 @@ def main():
     parser.add_argument('--logins', required=True, help='File containing user names')
     parser.add_argument('--passwords', required=True, help='File containing passwords')
     parser.add_argument('--thread_limit', type=int, default=5, help='Maximum number of threads')
-    parser.add_argument('--method', choices=['GET', 'POST'], default='GET', help='HTTP method to use (GET or POST)')
+    parser.add_argument('--debug', required=False, action='store_true', help='Enable debug logging')
     args = parser.parse_args()
+
+    # Set logging level based on the debug argument
+    if args.debug:
+        logging.basicConfig(level=logging.DEBUG)
+        logging.debug("Debug logging enabled")
+    else:
+        logging.basicConfig(level=logging.INFO)
+        logging.info("Debug logging disabled")
 
     # Validate files
     validate_file(args.ipfile, 'ipfile')
@@ -192,7 +201,7 @@ def main():
                     threads.remove(t)
 
         # Spawn new thread
-        t = threading.Thread(target=worker, args=(ip, port, logins, passwords, args.method))
+        t = threading.Thread(target=worker, args=(ip, port, logins, passwords))
         threads.append(t)
         t.start()
 

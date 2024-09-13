@@ -1,4 +1,4 @@
-from asyncio.log import logger
+import logging
 
 import requests
 
@@ -19,7 +19,7 @@ class HikV2(Hik):
         headers = {'Content-Type': self.contentType, 'Accept':self.contentType}
 
         result = requests.post(link, headers=headers)
-        logger.debug(f"{self.get_version()} trying to access {link}, result {result.status_code}")
+        logging.debug(f"{self.get_version()} trying to access {link}, result {result.status_code}")
         if result.status_code != 200:
             return False
 
